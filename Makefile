@@ -13,8 +13,9 @@ down:  ## Stop them (keeps data)
 clean:  ## Stop and DELETE all indexed data
 	docker compose down -v
 
-install:  ## Create .venv and install everything
+install:  ## Create .venv, install everything, and create .env
 	uv sync --all-groups
+	@test -f .env || cp .env.example .env
 
 ingest:  ## Ingest ./data/raw into the index
 	uv run ragforge ingest data/raw
