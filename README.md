@@ -137,3 +137,64 @@ problem hit along the way with its fix. Written during the build, not afterwards
 ## License
 
 MIT
+
+---
+
+## Run it yourself
+
+```bash
+git clone https://github.com/hammas159/rag-forge
+cd rag-forge
+
+make up        # Postgres 17 + pgvector, Redis
+make install   # uv sync, writes .env
+make ingest    # indexes the seed corpus in data/raw/
+make ask Q="What does Reciprocal Rank Fusion combine?"
+make ui        # Streamlit on :8501
+```
+
+`ragforge status` checks every dependency separately, so a broken setup names its own
+broken piece:
+
+```
+| store (postgres) | up   | postgresql://ragforge@localhost:5433 |
+| index            | ok   | 1 documents, 5 chunks                |
+| redis            | up   | redis://localhost:6380/0             |
+| gpu              | ok   | Quadro RTX 5000                      |
+```
+
+Retrieval runs without an LLM — the dense and sparse halves, RRF fusion and the
+cross-encoder are all independent of it. To generate answers, add a backend:
+`ollama pull qwen2.5:3b-instruct`, or set `ANTHROPIC_API_KEY`.
+
+**Point it at your own documents:** drop PDFs or markdown into `data/raw/` and re-run
+`make ingest`. The default model profile is ~220 MB and runs on CPU.
+
+## Problems hit while building this
+
+**Hybrid retrieval was silently dense-only.** Every hit came back with
+`sparse_rank=None`. `websearch_to_tsquery` joins terms with **AND**, so a real question
+needs every word present — `"why use a cross encoder after the bi-encoder"` became
+`'use' & 'cross' & 'encod' & 'bi-encod'` and matched nothing, on every query.
+
+The sparse half returned an empty list every time, RRF had one ranking to fuse instead of
+two, and the system was dense-only while calling itself hybrid — in the README, in the
+commits, in the architecture diagram.
+
+**And it is invisible from outside.** Results still looked good, because the dense half is
+genuinely strong. Nothing errored. The only trace was the per-hit provenance exposed on
+the result object for debuggability, which is the entire argument for exposing it. *Fixed*
+by rewriting the operators to OR. Worth noting the asymmetry: the SQLite store had this
+right from the start, because its FTS5 query was written by hand with explicit `OR`; the
+Postgres one inherited AND from a convenience function whose defaults suit a search box
+rather than a question.
+
+**The UI opened a Postgres connection regardless of configuration.** Found by reading the
+code before it could be run — it would have crashed the hosted demo on boot, since free
+hosting has no database. Precisely the failure the store abstraction exists to prevent,
+sitting in the one file that bypassed it.
+
+**The schema self-healed for real.** The Postgres container predated a change of default
+embedding model, so the column was still `vector(1024)` while the loaded model produced
+384 dimensions. `ensure_dim` detected the mismatch against actual model output — not
+against config — and rebuilt the column and HNSW index. That was not staged.
