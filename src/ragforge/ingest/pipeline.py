@@ -1,4 +1,4 @@
-"""File -> text -> chunks -> embeddings -> Postgres."""
+"""File -> text -> chunks -> embeddings -> store."""
 
 from __future__ import annotations
 
@@ -7,27 +7,12 @@ from pathlib import Path
 from rich.console import Console
 
 from ..config import get_settings
-from ..db import connection
-from ..migrate import ensure_dim
 from ..embed import embed_passages
+from ..store import get_store
 from .chunker import chunk_text
 from .readers import SUPPORTED, read_file
 
 console = Console()
-
-
-def _upsert_document(conn, source: str, title: str) -> int:
-    """Re-ingesting a file replaces its chunks (ON DELETE CASCADE) rather than duplicating."""
-    row = conn.execute(
-        """
-        INSERT INTO documents (source, title) VALUES (%s, %s)
-        ON CONFLICT (source) DO UPDATE SET title = EXCLUDED.title
-        RETURNING id
-        """,
-        (source, title),
-    ).fetchone()
-    conn.execute("DELETE FROM chunks WHERE document_id = %s", (row["id"],))
-    return row["id"]
 
 
 def ingest_file(path: Path) -> int:
@@ -38,42 +23,19 @@ def ingest_file(path: Path) -> int:
         return 0
 
     chunks = chunk_text(
-        text,
-        source=str(path),
-        max_tokens=s.chunk_tokens,
-        overlap_tokens=s.chunk_overlap,
+        text, source=str(path), max_tokens=s.chunk_tokens, overlap_tokens=s.chunk_overlap
     )
     if not chunks:
         return 0
 
     vectors = embed_passages([c.content for c in chunks])
 
-    with connection() as conn:
-        ensure_dim(conn, len(vectors[0]))
-        doc_id = _upsert_document(conn, str(path), title)
-        with conn.cursor() as cur:
-            cur.executemany(
-                """
-                INSERT INTO chunks
-                    (document_id, ordinal, content, char_start, char_end,
-                     section, token_count, embedding)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                """,
-                [
-                    (
-                        doc_id,
-                        c.ordinal,
-                        c.content,
-                        c.char_start,
-                        c.char_end,
-                        c.section,
-                        c.token_count,
-                        v,
-                    )
-                    for c, v in zip(chunks, vectors, strict=True)
-                ],
-            )
-        conn.commit()
+    store = get_store()
+    # Width comes from the vectors themselves, never from config, so the schema and
+    # the model cannot drift apart when EMBED_MODEL changes.
+    store.ensure_schema(len(vectors[0]))
+    doc_id = store.upsert_document(str(path), title)
+    store.add_chunks(doc_id, chunks, vectors)
 
     console.print(f"[green]ok[/] {path.name} -> {len(chunks)} chunks")
     return len(chunks)
@@ -91,5 +53,8 @@ def ingest_path(target: str | Path) -> int:
         return 0
 
     total = sum(ingest_file(p) for p in files)
-    console.print(f"[bold green]ingested {len(files)} file(s), {total} chunks[/]")
+    console.print(
+        f"[bold green]ingested {len(files)} file(s), {total} chunks "
+        f"into {get_store().name}[/]"
+    )
     return total

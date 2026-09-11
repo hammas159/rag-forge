@@ -53,6 +53,19 @@ Character offsets survive the whole pipeline. That invariant is what makes a cit
 point at *characters 4102–4288 of contracts.pdf* rather than "document 3", and it is
 covered by a test.
 
+## Try it without installing anything
+
+| | |
+|---|---|
+| **Live demo** | Hugging Face Space — ask a question in the browser, no setup |
+| **Open in Codespaces** | one click, full repo running in VS Code in the browser |
+| **Clone and run** | `make app` — whole stack in Docker, CPU models |
+
+The demo runs the same code as the production path. Only two things change,
+both by configuration: the store is SQLite instead of Postgres, and generation
+goes through hosted inference instead of a local GPU model. That portability is
+why `store/` and `llm.py` are interfaces rather than direct calls.
+
 ## Quick start
 
 ```bash

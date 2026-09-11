@@ -68,18 +68,18 @@ def status() -> None:
     """Check that every dependency this project needs is actually reachable."""
     import httpx
 
-    from .db import connection, healthcheck
+    from .store import get_store
 
     s = get_settings()
     table = Table("component", "status", "detail")
 
-    ok = healthcheck()
-    table.add_row("postgres", "[green]up[/]" if ok else "[red]down[/]", s.postgres_dsn)
+    store = get_store()
+    ok = store.healthy()
+    detail = s.postgres_dsn if store.name == "postgres" else s.sqlite_path
+    table.add_row(f"store ({store.name})", "[green]up[/]" if ok else "[red]down[/]", detail)
 
     if ok:
-        with connection() as conn:
-            docs = conn.execute("SELECT count(*) AS n FROM documents").fetchone()["n"]
-            chunks = conn.execute("SELECT count(*) AS n FROM chunks").fetchone()["n"]
+        docs, chunks = store.counts()
         table.add_row("index", "[green]ok[/]", f"{docs} documents, {chunks} chunks")
 
     try:

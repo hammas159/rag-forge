@@ -69,7 +69,48 @@ class AnthropicBackend(LLMBackend):
         return "".join(b.text for b in msg.content if b.type == "text").strip()
 
 
+class HuggingFaceBackend(LLMBackend):
+    """Serverless inference via HF's OpenAI-compatible router.
+
+    Exists so the public demo can generate answers on free CPU hosting, where
+    neither Ollama nor a GPU is available. Same interface as the other two.
+    """
+
+    name = "huggingface"
+
+    def __init__(self, settings: Settings) -> None:
+        if not settings.hf_token:
+            raise RuntimeError(
+                "LLM_BACKEND=huggingface but HF_TOKEN is empty. "
+                "Create a read token at huggingface.co/settings/tokens."
+            )
+        self.token = settings.hf_token
+        self.model = settings.hf_model
+        self.base_url = settings.hf_base_url.rstrip("/")
+
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, max=10))
+    def complete(self, prompt: str, system: str = "", max_tokens: int = 1024) -> str:
+        messages = []
+        if system:
+            messages.append({"role": "system", "content": system})
+        messages.append({"role": "user", "content": prompt})
+        with httpx.Client(timeout=180.0) as client:
+            r = client.post(
+                f"{self.base_url}/chat/completions",
+                headers={"Authorization": f"Bearer {self.token}"},
+                json={
+                    "model": self.model,
+                    "messages": messages,
+                    "max_tokens": max_tokens,
+                    "temperature": 0.0,
+                },
+            )
+            r.raise_for_status()
+            return r.json()["choices"][0]["message"]["content"].strip()
+
+
 _BACKENDS: dict[str, type[LLMBackend]] = {
+    "huggingface": HuggingFaceBackend,
     "ollama": OllamaBackend,
     "anthropic": AnthropicBackend,
 }

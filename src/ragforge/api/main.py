@@ -9,7 +9,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 from ..config import get_settings
-from ..db import connection, healthcheck
+from ..store import get_store
 from ..generate import answer_question
 from ..types import Answer
 
@@ -40,23 +40,23 @@ def _cache():
 
 @app.get("/health")
 def health() -> dict:
-    return {"status": "ok" if healthcheck() else "degraded", "postgres": healthcheck()}
+    store = get_store()
+    ok = store.healthy()
+    return {"status": "ok" if ok else "degraded", "store": store.name}
 
 
 @app.get("/stats")
 def stats() -> dict:
-    if not healthcheck():
-        raise HTTPException(503, "postgres unavailable")
-    with connection() as conn:
-        docs = conn.execute("SELECT count(*) AS n FROM documents").fetchone()["n"]
-        chunks = conn.execute("SELECT count(*) AS n FROM chunks").fetchone()["n"]
+    if not get_store().healthy():
+        raise HTTPException(503, "store unavailable")
+    docs, chunks = get_store().counts()
     return {"documents": docs, "chunks": chunks}
 
 
 @app.post("/ask", response_model=Answer)
 def ask(req: AskRequest) -> Answer:
-    if not healthcheck():
-        raise HTTPException(503, "postgres unavailable")
+    if not get_store().healthy():
+        raise HTTPException(503, "store unavailable")
 
     s = get_settings()
     key = "ask:" + hashlib.sha256(

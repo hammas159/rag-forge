@@ -11,6 +11,9 @@ class Settings(BaseSettings):
     )
 
     # Storage
+    # "postgres" for real use, "sqlite" for a zero-dependency demo (free hosting).
+    store: str = "postgres"
+    sqlite_path: str = "data/ragforge.db"
     postgres_dsn: str = "postgresql://ragforge:ragforge@localhost:5433/ragforge"
     redis_url: str = "redis://localhost:6380/0"
 
@@ -20,6 +23,9 @@ class Settings(BaseSettings):
     ollama_model: str = "qwen2.5:3b-instruct"
     anthropic_api_key: str = ""
     anthropic_model: str = "claude-sonnet-5"
+    hf_token: str = ""
+    hf_model: str = "Qwen/Qwen2.5-7B-Instruct"
+    hf_base_url: str = "https://router.huggingface.co/v1"
 
     # Models
     embed_model: str = "BAAI/bge-small-en-v1.5"

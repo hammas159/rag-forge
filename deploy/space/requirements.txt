@@ -1,0 +1,14 @@
+# Spaces install from requirements.txt, not pyproject. CPU torch only - free tier has no GPU.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch>=2.6
+sentence-transformers>=3.3
+transformers>=4.47
+streamlit>=1.40
+pydantic>=2.9
+pydantic-settings>=2.6
+httpx>=0.28
+tiktoken>=0.8
+pypdf>=5.1
+rich>=13.9
+typer>=0.15
+tenacity>=9.0

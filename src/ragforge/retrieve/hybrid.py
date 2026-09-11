@@ -3,47 +3,16 @@
 Dense alone misses exact terms (product codes, names, statute numbers). Sparse alone
 misses paraphrase. RRF fuses the two rankings without needing their scores to be
 comparable - it only uses rank position, which is why it is robust.
+
+Which storage engine serves the two halves is a config choice; see store/.
 """
 
 from __future__ import annotations
 
 from ..config import get_settings
-from ..db import connection
 from ..embed import embed_query, rerank
+from ..store import get_store
 from ..types import Chunk, ScoredChunk
-
-_SELECT = """
-    SELECT c.id, c.document_id, c.ordinal, c.content, c.char_start, c.char_end,
-           c.section, c.token_count, d.source
-"""
-
-
-def _dense(conn, vector: list[float], k: int) -> list[dict]:
-    return conn.execute(
-        _SELECT
-        + """
-        , 1 - (c.embedding <=> %s::vector) AS score
-        FROM chunks c JOIN documents d ON d.id = c.document_id
-        WHERE c.embedding IS NOT NULL
-        ORDER BY c.embedding <=> %s::vector
-        LIMIT %s
-        """,
-        (vector, vector, k),
-    ).fetchall()
-
-
-def _sparse(conn, query: str, k: int) -> list[dict]:
-    return conn.execute(
-        _SELECT
-        + """
-        , ts_rank_cd(c.tsv, websearch_to_tsquery('english', %s)) AS score
-        FROM chunks c JOIN documents d ON d.id = c.document_id
-        WHERE c.tsv @@ websearch_to_tsquery('english', %s)
-        ORDER BY score DESC
-        LIMIT %s
-        """,
-        (query, query, k),
-    ).fetchall()
 
 
 def _to_chunk(row: dict) -> Chunk:
@@ -77,11 +46,11 @@ def _rrf(
 def retrieve(query: str, *, top_k: int | None = None) -> list[ScoredChunk]:
     s = get_settings()
     top_k = top_k or s.top_k_rerank
-    qvec = embed_query(query)
+    store = get_store()
 
-    with connection() as conn:
-        dense_rows = _dense(conn, qvec, s.top_k_dense)
-        sparse_rows = _sparse(conn, query, s.top_k_sparse)
+    qvec = embed_query(query)
+    dense_rows = [dict(r) for r in store.dense(qvec, s.top_k_dense)]
+    sparse_rows = [dict(r) for r in store.sparse(query, s.top_k_sparse)]
 
     if not dense_rows and not sparse_rows:
         return []
@@ -91,8 +60,7 @@ def retrieve(query: str, *, top_k: int | None = None) -> list[ScoredChunk]:
 
     # Rerank the fused candidates. This is the single biggest quality lever in the
     # pipeline - the bi-encoder is a recall filter, the cross-encoder is precision.
-    candidates = sorted(fused.items(), key=lambda kv: kv[1][0], reverse=True)
-    cand_ids = [cid for cid, _ in candidates]
+    cand_ids = [cid for cid, _ in sorted(fused.items(), key=lambda kv: kv[1][0], reverse=True)]
     scores = rerank(query, [by_id[cid]["content"] for cid in cand_ids])
 
     results = [
