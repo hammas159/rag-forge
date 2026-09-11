@@ -32,6 +32,9 @@ api:  ## Run the API on :8000
 ui:  ## Run the Streamlit UI on :8501
 	uv run streamlit run ui/app.py
 
+space:  ## Deploy the live demo to a Hugging Face Space:  make space HF_USER=name
+	./scripts/deploy_space.sh $(HF_USER)
+
 eval:  ## Run the eval harness and write the results table
 	uv run ragforge eval
 
@@ -46,4 +49,4 @@ fmt:  ## Auto-format
 	uv run ruff format src tests
 	uv run ruff check --fix src tests
 
-.PHONY: help up down clean install ingest ask app api ui eval test lint fmt
+.PHONY: help up down clean install ingest ask app api ui eval space test lint fmt
