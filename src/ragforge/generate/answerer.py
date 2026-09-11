@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import re
 import time
 
@@ -48,7 +49,7 @@ def _grounding_score(answer_text: str, retrieved: list[ScoredChunk]) -> float:
     if not scores:
         return 0.0
     best = max(scores)
-    return 1.0 / (1.0 + pow(2.718281828, -best))  # logit -> probability
+    return 1.0 / (1.0 + math.exp(-best))  # logit -> probability
 
 
 def answer_question(question: str, *, top_k: int | None = None) -> Answer:

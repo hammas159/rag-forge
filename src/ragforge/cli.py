@@ -121,7 +121,9 @@ def status() -> None:
     console.print(table)
 
 
-@app.command()
+# Named explicitly: Typer would otherwise call this "evaluate", while the Makefile,
+# the README and CI all invoke `ragforge eval`.
+@app.command("eval")
 def evaluate() -> None:
     """Run the eval harness over eval/questions.jsonl and write RESULTS.md."""
     from .eval.harness import run_eval

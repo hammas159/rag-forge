@@ -9,8 +9,8 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 from ..config import get_settings
-from ..store import get_store
 from ..generate import answer_question
+from ..store import get_store
 from ..types import Answer
 
 app = FastAPI(

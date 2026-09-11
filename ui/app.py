@@ -11,8 +11,8 @@ import streamlit as st
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from ragforge.config import get_settings  # noqa: E402
-from ragforge.db import connection, healthcheck  # noqa: E402
 from ragforge.generate import answer_question  # noqa: E402
+from ragforge.store import get_store  # noqa: E402
 
 st.set_page_config(page_title="rag-forge", page_icon="*", layout="wide")
 settings = get_settings()
@@ -22,13 +22,12 @@ st.caption("Hybrid retrieval · cross-encoder rerank · verified span citations 
 
 with st.sidebar:
     st.subheader("System")
-    if healthcheck():
-        with connection() as conn:
-            docs = conn.execute("SELECT count(*) AS n FROM documents").fetchone()["n"]
-            chunks = conn.execute("SELECT count(*) AS n FROM chunks").fetchone()["n"]
-        st.success(f"{docs} documents · {chunks} chunks")
+    store = get_store()
+    if store.healthy():
+        docs, chunks = store.counts()
+        st.success(f"{docs} documents · {chunks} chunks · {store.name}")
     else:
-        st.error("Postgres unreachable — run `make up`")
+        st.error("Store unreachable — run `make up`, or set STORE=sqlite")
 
     st.write(f"**LLM** `{settings.llm_backend}`")
     st.write(f"**Embed** `{settings.embed_model}`")
