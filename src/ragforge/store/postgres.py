@@ -62,13 +62,24 @@ class PostgresStore:
                 (vector, vector, k),
             ).fetchall()
 
+    # websearch_to_tsquery joins every term with AND, so a natural-language question
+    # only matches a chunk containing *all* of its words - which for a real question is
+    # essentially never. The sparse half then returns nothing on every query, RRF has
+    # one list to fuse instead of two, and the system is silently dense-only while
+    # still calling itself hybrid.
+    #
+    # Rewriting the operators to OR keeps websearch's parsing - quoted phrases, negation
+    # - and lets ts_rank_cd do what it is for: rank by how many terms matched and how
+    # close together they are. Partial matching is the whole point of the sparse side.
+    _TSQUERY = "replace(websearch_to_tsquery('english', %s)::text, '&', '|')::tsquery"
+
     def sparse(self, query: str, k: int) -> list[dict]:
         with connection() as conn:
             return conn.execute(
                 _SELECT
-                + ", ts_rank_cd(c.tsv, websearch_to_tsquery('english', %s)) AS score"
+                + f", ts_rank_cd(c.tsv, {self._TSQUERY}) AS score"
                 " FROM chunks c JOIN documents d ON d.id = c.document_id"
-                " WHERE c.tsv @@ websearch_to_tsquery('english', %s)"
+                f" WHERE c.tsv @@ {self._TSQUERY}"
                 " ORDER BY score DESC LIMIT %s",
                 (query, query, k),
             ).fetchall()
