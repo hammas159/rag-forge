@@ -22,6 +22,9 @@ ingest:  ## Ingest ./data/raw into the index
 ask:  ## Ask one question:  make ask Q="what is X?"
 	uv run ragforge ask "$(Q)"
 
+app:  ## Clone-and-run demo: everything in Docker (CPU models)
+	docker compose --profile app up --build
+
 api:  ## Run the API on :8000
 	uv run uvicorn ragforge.api.main:app --reload --port 8000
 
@@ -42,4 +45,4 @@ fmt:  ## Auto-format
 	uv run ruff format src tests
 	uv run ruff check --fix src tests
 
-.PHONY: help up down clean install ingest ask api ui eval test lint fmt
+.PHONY: help up down clean install ingest ask app api ui eval test lint fmt

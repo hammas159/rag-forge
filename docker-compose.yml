@@ -31,6 +31,32 @@ services:
       timeout: 3s
       retries: 20
 
+  # Optional: `docker compose --profile app up` for a clone-and-run demo (CPU models).
+  # For GPU, run the API on the host instead: `make api`.
+  api:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    environment:
+      POSTGRES_DSN: postgresql://ragforge:ragforge@postgres:5432/ragforge
+      REDIS_URL: redis://redis:6379/0
+      DEVICE: cpu
+      LLM_BACKEND: ${LLM_BACKEND:-ollama}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    ports:
+      - "8000:8000"
+    volumes:
+      - hfcache:/models          # model weights survive rebuilds
+      - ./data:/app/data:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis:    { condition: service_healthy }
+
 volumes:
   pgdata:
   redisdata:
+  hfcache:

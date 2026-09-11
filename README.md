@@ -1,6 +1,11 @@
 # rag-forge
 
-Production RAG that refuses to guess.
+[![ci](https://github.com/hammas159/rag-forge/actions/workflows/ci.yml/badge.svg)](https://github.com/hammas159/rag-forge/actions/workflows/ci.yml)
+![python](https://img.shields.io/badge/python-3.12-blue)
+![postgres](https://img.shields.io/badge/postgres-17%20%2B%20pgvector-336791)
+![license](https://img.shields.io/badge/license-MIT-green)
+
+**Production RAG that refuses to guess.**
 
 Hybrid retrieval (dense + sparse, RRF-fused) → cross-encoder rerank → generation →
 **every quote verified against the source** → a grounding gate that blocks the answer
