@@ -1,0 +1,5 @@
+{"question": "What does Reciprocal Rank Fusion combine?", "expected": "rank", "answerable": true}
+{"question": "Why is a cross-encoder used after the bi-encoder?", "expected": "precision", "answerable": true}
+{"question": "What happens when the grounding score is below the threshold?", "expected": "refus", "answerable": true}
+{"question": "What is the airspeed velocity of an unladen swallow according to these documents?", "expected": "", "answerable": false}
+{"question": "What were the 2031 quarterly revenue figures for Acme Corporation?", "expected": "", "answerable": false}

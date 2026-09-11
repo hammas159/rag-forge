@@ -1,0 +1,74 @@
+[project]
+name = "ragforge"
+version = "0.1.0"
+description = "Production RAG: hybrid retrieval, cross-encoder rerank, span-level citations, hallucination gate."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+
+dependencies = [
+    # API
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "httpx>=0.28",
+    # Storage
+    "psycopg[binary,pool]>=3.2",
+    "pgvector>=0.3.6",
+    "redis>=5.2",
+    # Models
+    "torch>=2.6",
+    "sentence-transformers>=3.3",
+    "transformers>=4.47",
+    # Ingestion
+    "pypdf>=5.1",
+    "markdown-it-py>=3.0",
+    "tiktoken>=0.8",
+    # LLM backends
+    "anthropic>=0.40",
+    # Utils
+    "rich>=13.9",
+    "typer>=0.15",
+    "tenacity>=9.0",
+]
+
+[project.scripts]
+ragforge = "ragforge.cli:app"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "ruff>=0.8",
+    "mypy>=1.13",
+]
+ui = [
+    "streamlit>=1.40",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ragforge"]
+
+# GPU torch. Quadro RTX 5000 (Turing, sm_75) + driver 580 -> cu128 wheels.
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu128" }
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

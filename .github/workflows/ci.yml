@@ -1,0 +1,52 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies (CPU torch — no GPU on runners)
+        run: uv sync --all-groups --extra-index-url https://download.pytorch.org/whl/cpu
+
+      - name: Lint
+        run: |
+          uv run ruff check src tests
+          uv run ruff format --check src tests
+
+      - name: Unit tests
+        # Chunking, citation verification and config need neither a database nor a GPU,
+        # which is deliberate — the logic worth testing is pure.
+        run: uv run pytest -q tests/
+
+  schema:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_USER: ragforge
+          POSTGRES_PASSWORD: ragforge
+          POSTGRES_DB: ragforge
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ragforge" --health-interval 5s
+          --health-timeout 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply schema
+        run: PGPASSWORD=ragforge psql -h localhost -U ragforge -d ragforge -v ON_ERROR_STOP=1 -f docker/init.sql
+      - name: Verify tables and indexes exist
+        run: |
+          PGPASSWORD=ragforge psql -h localhost -U ragforge -d ragforge -c "\d chunks"
+          PGPASSWORD=ragforge psql -h localhost -U ragforge -d ragforge -c "SELECT indexname FROM pg_indexes WHERE tablename='chunks';"
