@@ -116,6 +116,11 @@ The tests target the pure logic — offsets, quote location, refusal conditions 
 of which needs a database or a GPU. CI runs them plus a schema check against a real
 pgvector container.
 
+## How this was built
+
+[`docs/BUILD_LOG.md`](docs/BUILD_LOG.md) — the decisions, the trade-offs, and every
+problem hit along the way with its fix. Written during the build, not afterwards.
+
 ## License
 
 MIT
