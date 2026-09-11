@@ -29,4 +29,6 @@ def _bootstrap() -> int:
 
 
 _bootstrap()
-exec((ROOT / "ui" / "app.py").read_text(encoding="utf-8"), {"__file__": str(ROOT / "ui" / "app.py")})
+exec(
+    (ROOT / "ui" / "app.py").read_text(encoding="utf-8"), {"__file__": str(ROOT / "ui" / "app.py")}
+)

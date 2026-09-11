@@ -25,8 +25,9 @@ class Store(Protocol):
     def upsert_document(self, source: str, title: str) -> int:
         """Insert or replace a document, clearing its old chunks. Returns its id."""
 
-    def add_chunks(self, document_id: int, chunks: list[Chunk], vectors: list[list[float]]) -> None:
-        ...
+    def add_chunks(
+        self, document_id: int, chunks: list[Chunk], vectors: list[list[float]]
+    ) -> None: ...
 
     def dense(self, vector: list[float], k: int) -> list[dict]:
         """Top-k by cosine similarity."""
@@ -37,5 +38,4 @@ class Store(Protocol):
     def counts(self) -> tuple[int, int]:
         """(documents, chunks)"""
 
-    def healthy(self) -> bool:
-        ...
+    def healthy(self) -> bool: ...

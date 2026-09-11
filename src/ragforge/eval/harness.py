@@ -34,7 +34,11 @@ def _load() -> list[dict]:
             f"{QUESTIONS} not found. Each line: "
             '{"question": "...", "expected": "...", "answerable": true}'
         )
-    return [json.loads(line) for line in QUESTIONS.read_text(encoding="utf-8").splitlines() if line.strip()]
+    return [
+        json.loads(line)
+        for line in QUESTIONS.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
 
 
 def run_eval() -> dict:

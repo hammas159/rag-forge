@@ -13,9 +13,7 @@ from ragforge.db import healthcheck
 from ragforge.store import get_store
 from ragforge.store.postgres import PostgresStore
 
-pytestmark = pytest.mark.skipif(
-    not healthcheck(), reason="no Postgres reachable; run `make up`"
-)
+pytestmark = pytest.mark.skipif(not healthcheck(), reason="no Postgres reachable; run `make up`")
 
 
 @pytest.fixture(scope="module")
@@ -82,9 +80,9 @@ class TestSchema:
     def test_the_vector_column_matches_the_loaded_model(self, seeded):
         """ensure_dim reconciles these; a mismatch means inserts fail or, worse,
         retrieval silently compares incomparable vectors."""
+        from ragforge.db import connection
         from ragforge.embed import embed_query
         from ragforge.migrate import current_dim
-        from ragforge.db import connection
 
         with connection() as conn:
             column_width = current_dim(conn)
@@ -100,8 +98,8 @@ class TestSchema:
                     "SELECT indexname FROM pg_indexes WHERE tablename = 'chunks'"
                 ).fetchall()
             }
-        assert "chunks_embedding_idx" in names   # HNSW, dense half
-        assert "chunks_tsv_idx" in names         # GIN, sparse half
+        assert "chunks_embedding_idx" in names  # HNSW, dense half
+        assert "chunks_tsv_idx" in names  # GIN, sparse half
 
     def test_the_store_is_the_postgres_one(self, seeded):
         assert isinstance(seeded, PostgresStore)

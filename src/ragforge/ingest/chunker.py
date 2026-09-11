@@ -60,7 +60,12 @@ def chunk_text(
         buf: list[tuple[str, int, int]] = []
         buf_tokens = 0
 
-        def flush() -> None:
+        # `section` is bound as a default argument rather than captured from the
+        # enclosing loop. It is correct either way today, because flush() is only ever
+        # called within the same iteration - but a late-binding closure over a loop
+        # variable is one refactor away from silently labelling every chunk with the
+        # *last* section in the document, and nothing would fail loudly when it did.
+        def flush(section: str = section) -> None:
             nonlocal buf, buf_tokens, ordinal
             if not buf:
                 return

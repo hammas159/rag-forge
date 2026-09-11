@@ -8,9 +8,14 @@ def _retrieved() -> list[ScoredChunk]:
     return [
         ScoredChunk(
             chunk=Chunk(
-                id=1, document_id=1, ordinal=0, content=CONTENT,
-                char_start=100, char_end=100 + len(CONTENT),
-                section="Retrieval", source="notes.md",
+                id=1,
+                document_id=1,
+                ordinal=0,
+                content=CONTENT,
+                char_start=100,
+                char_end=100 + len(CONTENT),
+                section="Retrieval",
+                source="notes.md",
             ),
             score=0.9,
         )

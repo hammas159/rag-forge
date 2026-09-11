@@ -94,7 +94,9 @@ def status() -> None:
         import torch
 
         detail = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU only"
-        table.add_row("gpu", "[green]ok[/]" if torch.cuda.is_available() else "[yellow]cpu[/]", detail)
+        table.add_row(
+            "gpu", "[green]ok[/]" if torch.cuda.is_available() else "[yellow]cpu[/]", detail
+        )
     except Exception as exc:
         table.add_row("gpu", "[red]error[/]", str(exc)[:60])
 

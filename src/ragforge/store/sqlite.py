@@ -29,7 +29,7 @@ def _unpack(blob: bytes) -> list[float]:
 
 def _cosine(a: list[float], b: list[float]) -> float:
     """Both sides are L2-normalised at embed time, so the dot product is the cosine."""
-    return sum(x * y for x, y in zip(a, b))
+    return sum(x * y for x, y in zip(a, b, strict=False))
 
 
 class SqliteStore:
@@ -89,18 +89,22 @@ class SqliteStore:
         self.conn.commit()
         return doc_id
 
-    def add_chunks(
-        self, document_id: int, chunks: list[Chunk], vectors: list[list[float]]
-    ) -> None:
+    def add_chunks(self, document_id: int, chunks: list[Chunk], vectors: list[list[float]]) -> None:
         self.conn.executemany(
             "INSERT INTO chunks(document_id, ordinal, content, char_start, char_end,"
             " section, token_count, embedding) VALUES (?,?,?,?,?,?,?,?)",
             [
                 (
-                    document_id, c.ordinal, c.content, c.char_start, c.char_end,
-                    c.section, c.token_count, _pack(v),
+                    document_id,
+                    c.ordinal,
+                    c.content,
+                    c.char_start,
+                    c.char_end,
+                    c.section,
+                    c.token_count,
+                    _pack(v),
                 )
-                for c, v in zip(chunks, vectors)
+                for c, v in zip(chunks, vectors, strict=False)
             ],
         )
         self.conn.commit()

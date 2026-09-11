@@ -34,17 +34,21 @@ class PostgresStore:
             conn.commit()
             return row["id"]
 
-    def add_chunks(
-        self, document_id: int, chunks: list[Chunk], vectors: list[list[float]]
-    ) -> None:
+    def add_chunks(self, document_id: int, chunks: list[Chunk], vectors: list[list[float]]) -> None:
         with connection() as conn, conn.cursor() as cur:
             cur.executemany(
                 "INSERT INTO chunks (document_id, ordinal, content, char_start, char_end,"
                 " section, token_count, embedding) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",
                 [
                     (
-                        document_id, c.ordinal, c.content, c.char_start, c.char_end,
-                        c.section, c.token_count, v,
+                        document_id,
+                        c.ordinal,
+                        c.content,
+                        c.char_start,
+                        c.char_end,
+                        c.section,
+                        c.token_count,
+                        v,
                     )
                     for c, v in zip(chunks, vectors, strict=True)
                 ],
@@ -54,8 +58,7 @@ class PostgresStore:
     def dense(self, vector: list[float], k: int) -> list[dict]:
         with connection() as conn:
             return conn.execute(
-                _SELECT
-                + ", 1 - (c.embedding <=> %s::vector) AS score"
+                _SELECT + ", 1 - (c.embedding <=> %s::vector) AS score"
                 " FROM chunks c JOIN documents d ON d.id = c.document_id"
                 " WHERE c.embedding IS NOT NULL"
                 " ORDER BY c.embedding <=> %s::vector LIMIT %s",
@@ -76,8 +79,7 @@ class PostgresStore:
     def sparse(self, query: str, k: int) -> list[dict]:
         with connection() as conn:
             return conn.execute(
-                _SELECT
-                + f", ts_rank_cd(c.tsv, {self._TSQUERY}) AS score"
+                _SELECT + f", ts_rank_cd(c.tsv, {self._TSQUERY}) AS score"
                 " FROM chunks c JOIN documents d ON d.id = c.document_id"
                 f" WHERE c.tsv @@ {self._TSQUERY}"
                 " ORDER BY score DESC LIMIT %s",

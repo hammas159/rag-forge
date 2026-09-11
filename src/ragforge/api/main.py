@@ -59,9 +59,9 @@ def ask(req: AskRequest) -> Answer:
         raise HTTPException(503, "store unavailable")
 
     s = get_settings()
-    key = "ask:" + hashlib.sha256(
-        f"{req.question}|{req.top_k}|{s.llm_backend}".encode()
-    ).hexdigest()
+    key = (
+        "ask:" + hashlib.sha256(f"{req.question}|{req.top_k}|{s.llm_backend}".encode()).hexdigest()
+    )
 
     client = _cache() if req.use_cache else None
     if client:

@@ -54,7 +54,6 @@ def ingest_path(target: str | Path) -> int:
 
     total = sum(ingest_file(p) for p in files)
     console.print(
-        f"[bold green]ingested {len(files)} file(s), {total} chunks "
-        f"into {get_store().name}[/]"
+        f"[bold green]ingested {len(files)} file(s), {total} chunks into {get_store().name}[/]"
     )
     return total

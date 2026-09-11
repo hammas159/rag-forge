@@ -70,7 +70,7 @@ def test_float32_roundtrip_is_close_enough(store):
     original = [0.1234567, -0.9876543, 0.5]
     packed = struct.pack("<3f", *original)
     back = list(struct.unpack("<3f", packed))
-    assert all(abs(a - b) < 1e-6 for a, b in zip(original, back))
+    assert all(abs(a - b) < 1e-6 for a, b in zip(original, back, strict=False))
 
 
 def test_fts5_is_available():

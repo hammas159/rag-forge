@@ -56,7 +56,9 @@ if question:
         st.subheader("Citations")
         for c in result.citations:
             name = Path(c.source).name
-            with st.expander(f"{name} · {c.section or 'no section'} · chars {c.char_start}–{c.char_end}"):
+            with st.expander(
+                f"{name} · {c.section or 'no section'} · chars {c.char_start}–{c.char_end}"
+            ):
                 st.markdown(f"> {c.quote}")
 
     with st.expander(f"Retrieval trace ({len(result.retrieved)} passages)"):
