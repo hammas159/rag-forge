@@ -21,7 +21,8 @@ CREATE TABLE IF NOT EXISTS chunks (
     char_end     INT         NOT NULL,
     section      TEXT        NOT NULL DEFAULT '',
     token_count  INT         NOT NULL DEFAULT 0,
-    embedding    VECTOR(1024),                  -- bge-m3 dense dim
+    embedding    VECTOR(384),                   -- default profile: bge-small-en-v1.5
+                                                -- swap EMBED_MODEL and the column is rebuilt automatically
     tsv          TSVECTOR GENERATED ALWAYS AS (to_tsvector('english', content)) STORED,
     UNIQUE (document_id, ordinal)
 );

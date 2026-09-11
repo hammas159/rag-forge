@@ -8,6 +8,7 @@ from rich.console import Console
 
 from ..config import get_settings
 from ..db import connection
+from ..migrate import ensure_dim
 from ..embed import embed_passages
 from .chunker import chunk_text
 from .readers import SUPPORTED, read_file
@@ -48,6 +49,7 @@ def ingest_file(path: Path) -> int:
     vectors = embed_passages([c.content for c in chunks])
 
     with connection() as conn:
+        ensure_dim(conn, len(vectors[0]))
         doc_id = _upsert_document(conn, str(path), title)
         with conn.cursor() as cur:
             cur.executemany(

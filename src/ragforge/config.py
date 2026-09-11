@@ -17,15 +17,15 @@ class Settings(BaseSettings):
     # LLM backend - one interface, two implementations. See llm.py.
     llm_backend: str = "ollama"
     ollama_base_url: str = "http://localhost:11434"
-    ollama_model: str = "qwen2.5:7b-instruct"
+    ollama_model: str = "qwen2.5:3b-instruct"
     anthropic_api_key: str = ""
     anthropic_model: str = "claude-sonnet-5"
 
     # Models
-    embed_model: str = "BAAI/bge-m3"
-    rerank_model: str = "BAAI/bge-reranker-v2-m3"
+    embed_model: str = "BAAI/bge-small-en-v1.5"
+    rerank_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
     device: str = "cuda"
-    embed_dim: int = 1024
+    embed_dim: int = 384
 
     # Retrieval
     top_k_dense: int = 20
