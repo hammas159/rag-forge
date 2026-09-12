@@ -1,4 +1,4 @@
-# rag-forge
+# rag-forge (FastAPI, PostgreSQL + pgvector, PyTorch, sentence-transformers)
 
 [![ci](https://github.com/hammas159/rag-forge/actions/workflows/ci.yml/badge.svg)](https://github.com/hammas159/rag-forge/actions/workflows/ci.yml)
 ![python](https://img.shields.io/badge/python-3.12-blue)
