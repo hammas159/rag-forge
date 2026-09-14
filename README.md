@@ -1,22 +1,46 @@
-# rag-forge (FastAPI, PostgreSQL + pgvector, PyTorch, sentence-transformers)
+<h1 align="center">rag-forge</h1>
+<p align="center"><i>Production RAG that refuses to guess</i></p>
 
-[![ci](https://github.com/hammas159/rag-forge/actions/workflows/ci.yml/badge.svg)](https://github.com/hammas159/rag-forge/actions/workflows/ci.yml)
-![python](https://img.shields.io/badge/python-3.12-blue)
-![postgres](https://img.shields.io/badge/postgres-17%20%2B%20pgvector-336791)
-![license](https://img.shields.io/badge/license-MIT-green)
+<p align="center">
+  <a href="#what-makes-it-different">What makes it different</a> &middot;
+  <a href="#architecture">Architecture</a> &middot;
+  <a href="#try-it-without-installing-anything">Try it</a> &middot;
+  <a href="#results">Results</a> &middot;
+  <a href="#problems-hit-while-building-this">Problems hit</a>
+</p>
 
-**Production RAG that refuses to guess.**
-
-Hybrid retrieval (dense + sparse, RRF-fused) → cross-encoder rerank → generation →
-**every quote verified against the source** → a grounding gate that blocks the answer
-when the evidence does not support it.
-
-Most RAG demos answer every question. This one is built around the cases where it
-should not.
+<p align="center">
+  <a href="https://github.com/hammas159/rag-forge/actions/workflows/ci.yml"><img src="https://github.com/hammas159/rag-forge/actions/workflows/ci.yml/badge.svg" alt="ci"></a>
+  <img src="https://img.shields.io/badge/python-3.12-blue" alt="python">
+  <img src="https://img.shields.io/badge/postgres-17%20%2B%20pgvector-336791" alt="postgres">
+  <img src="https://img.shields.io/badge/stack-FastAPI%20%C2%B7%20PyTorch%20%C2%B7%20sentence--transformers-orange" alt="stack">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="license"></a>
+</p>
 
 ---
 
 ## What makes it different
+
+```mermaid
+flowchart LR
+    Q["question"] --> D["dense retrieval<br/>pgvector"]
+    Q --> S["sparse retrieval<br/>BM25"]
+    D --> F["RRF fusion"]
+    S --> F
+    F --> R["cross-encoder rerank"]
+    R --> G["generation"]
+    G --> V["verify every quote<br/>against the source"]
+    V --> GATE{"does the evidence<br/>support the answer?"}
+    GATE -->|"yes"| A["answer"]
+    GATE -->|"no"| N["refuse"]
+
+    style N fill:#dc2626,color:#fff
+    style A fill:#16a34a,color:#fff
+```
+
+Most RAG demos answer every question. The gate is the part that makes this different: when
+the retrieved evidence does not support an answer, it says so instead of generating one.
+
 
 | | |
 |---|---|
@@ -133,6 +157,10 @@ pgvector container.
 
 [`docs/BUILD_LOG.md`](docs/BUILD_LOG.md) — the decisions, the trade-offs, and every
 problem hit along the way with its fix. Written during the build, not afterwards.
+
+## Keywords
+
+RAG &middot; retrieval-augmented generation &middot; hybrid retrieval &middot; dense retrieval &middot; sparse retrieval &middot; BM25 &middot; reciprocal rank fusion &middot; RRF &middot; cross-encoder reranking &middot; pgvector &middot; PostgreSQL &middot; vector database &middot; grounding &middot; hallucination prevention &middot; citation verification &middot; FastAPI &middot; PyTorch &middot; sentence-transformers &middot; semantic search &middot; production RAG
 
 ## License
 
