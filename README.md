@@ -139,7 +139,7 @@ docker/init.sql    schema, both indexes
 
 ## Results
 
-Run `make eval` to generate [`RESULTS.md`](RESULTS.md). Numbers are not quoted here
+Run `make eval` to generate `RESULTS.md`. Numbers are not quoted here
 until they have actually been measured on this machine.
 
 ## Tests
