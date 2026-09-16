@@ -90,6 +90,27 @@ both by configuration: the store is SQLite instead of Postgres, and generation
 goes through hosted inference instead of a local GPU model. That portability is
 why `store/` and `llm.py` are interfaces rather than direct calls.
 
+---
+
+## Input
+
+![input](docs/images/input.png)
+
+## Output
+
+`python demo.py`
+
+![output](docs/images/output.png)
+
+*The third quote cites the wrong passage number and verifies anyway — a real quote with a
+bad index is still a real quote, so it is located by searching every retrieved passage.*
+
+*The fourth is the one that matters. It is fluent, it is shaped exactly like the other
+three, and it appears in neither source. Nothing about its wording distinguishes it from
+a genuine citation; only looking for it in the text does.*
+
+---
+
 ## Quick start
 
 ```bash
