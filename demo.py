@@ -10,6 +10,7 @@ citation at all.
 No model, no database, no network: the "model output" is written here so the
 verification step can be watched on its own.
 """
+
 import sys
 
 sys.path.insert(0, "src")
@@ -28,12 +29,28 @@ WARRANTY = (
 )
 
 retrieved = [
-    ScoredChunk(chunk=Chunk(ordinal=0, content=REFUND_POLICY, char_start=0,
-                            char_end=len(REFUND_POLICY), source="policy.md",
-                            section="4.2 Refunds"), score=0.91),
-    ScoredChunk(chunk=Chunk(ordinal=1, content=WARRANTY, char_start=0,
-                            char_end=len(WARRANTY), source="policy.md",
-                            section="7.1 Warranty"), score=0.77),
+    ScoredChunk(
+        chunk=Chunk(
+            ordinal=0,
+            content=REFUND_POLICY,
+            char_start=0,
+            char_end=len(REFUND_POLICY),
+            source="policy.md",
+            section="4.2 Refunds",
+        ),
+        score=0.91,
+    ),
+    ScoredChunk(
+        chunk=Chunk(
+            ordinal=1,
+            content=WARRANTY,
+            char_start=0,
+            char_end=len(WARRANTY),
+            source="policy.md",
+            section="7.1 Warranty",
+        ),
+        score=0.77,
+    ),
 ]
 
 QUOTES = [
@@ -49,7 +66,7 @@ print("INPUT")
 print(f"   {len(retrieved)} retrieved passages from policy.md")
 print(f"   {len(QUOTES)} quotes the model claims to have taken from them:")
 for q in QUOTES:
-    print(f"      passage {q['passage']}  \"{q['quote']}\"")
+    print(f'      passage {q["passage"]}  "{q["quote"]}"')
 print()
 
 citations, unverified = verify_quotes(QUOTES, retrieved)
@@ -59,9 +76,9 @@ print(f"   {len(citations)} verified, {len(unverified)} dropped")
 print()
 for c in citations:
     print(f"   VERIFIED  {c.source} sec {c.section}  chars {c.char_start}-{c.char_end}")
-    print(f"             \"{c.quote}\"")
+    print(f'             "{c.quote}"')
 for u in unverified:
-    print(f"   DROPPED   \"{u}\"")
+    print(f'   DROPPED   "{u}"')
 print()
 print("   The third quote named the wrong passage and still verified: a real")
 print("   quote with a bad index is a real quote. The fourth reads exactly")
