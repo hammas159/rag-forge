@@ -1,4 +1,4 @@
-<h1 align="center">rag-forge</h1>
+<h1 align="center">rag-forge (FastAPI · PostgreSQL + pgvector · sentence-transformers · Anthropic API)</h1>
 <p align="center"><i>Production RAG that refuses to guess</i></p>
 
 <p align="center">
